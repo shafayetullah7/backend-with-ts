@@ -107,7 +107,7 @@ const userSchema = new mongoose.Schema<Tuser>({
 
 
 userSchema.statics.isUserExists = async function name(userId:number) {
-  const existingUser = await User.findOne({userId});
+  const existingUser = await User.findOne({userId},{password:0,__v:0});
   return existingUser;
 }
 
@@ -115,6 +115,9 @@ userSchema.pre('save',async function(next){
   this.password = await bcrypt.hash(this.password,Number(config.bcrypt_salt_rounds));
   next();
 });
+
+
+
 
 
 export const User = mongoose.model<Tuser,UserModel>("User", userSchema);
