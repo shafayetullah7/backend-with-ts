@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Tadress, TfullName, Torder, Tuser } from "./user.interface";
+import { Tadress, TfullName, Torder, Tuser, UserModel } from "./user.interface";
 import bcrypt from 'bcrypt';
 import config from "../config";
 
-const fullNameSchema = new mongoose.Schema<TfullName>({
+const fullNameSchema = new mongoose.Schema<TfullName, UserModel>({
   firstName: {
     type: String,
     required: [true, "FirstName is required"],
@@ -105,9 +105,16 @@ const userSchema = new mongoose.Schema<Tuser>({
   },
 });
 
+
+userSchema.statics.isUserExists = async function name(userId:number) {
+  const existingUser = await User.findOne({userId});
+  return existingUser;
+}
+
 userSchema.pre('save',async function(next){
   this.password = await bcrypt.hash(this.password,Number(config.bcrypt_salt_rounds));
   next();
-})
+});
 
-export const User = mongoose.model<Tuser>("User", userSchema);
+
+export const User = mongoose.model<Tuser,UserModel>("User", userSchema);

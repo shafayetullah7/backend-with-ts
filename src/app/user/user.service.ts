@@ -8,7 +8,6 @@ const createUserInDB = async (user: Tuser) => {
 };
 
 const getAllUsersFromDB = async () => {
-  // console.log('in service')
   const users = await User.aggregate([
     {
       $match: {},
@@ -27,7 +26,14 @@ const getAllUsersFromDB = async () => {
   return users;
 };
 
+const getSingleUserFromDB = async (userId:number) =>{
+  // const user = await User.findOne({userId},{_id:0, fullName:{firstName:1,lastName:1},address:{city:1,country:1,street:1}});
+  const existingUser = await User.isUserExists(userId);
+  return existingUser;
+}
+
 export const userServices = {
   createUserInDB,
   getAllUsersFromDB,
+  getSingleUserFromDB
 };
