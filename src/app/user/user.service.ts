@@ -3,20 +3,31 @@ import { User } from "./user.model";
 // import bcrypt from "bcrypt";
 
 const createUserInDB = async (user: Tuser) => {
-  // const hashedPass = await bcrypt.hash(user.password, 10);
-  // const newUser = await User.create({ ...user, password: hashedPass });
   const newUser = await User.create(user);
   return newUser;
-  // try {
-  //     const hashedPass = await bcrypt.hash(user.password,10);
-  //     const newUser = await User.create({...user,password:hashedPass});
-  //     return newUser;
-  // } catch (error) {
-  //     // console.log('in service ',(error as {message:string}).message);
-  //     throw new Error((error as {message:string}).message);
-  // }
+};
+
+const getAllUsersFromDB = async () => {
+  // console.log('in service')
+  const users = await User.aggregate([
+    {
+      $match: {},
+    },
+    {
+      $project: {
+        username: 1,
+        fullName: { firstName: 1, lastName: 1 },
+        age: 1,
+        email: 1,
+        _id: 0,
+        address: { city: 1, country: 1, street: 1 },
+      },
+    },
+  ]);
+  return users;
 };
 
 export const userServices = {
   createUserInDB,
+  getAllUsersFromDB,
 };
