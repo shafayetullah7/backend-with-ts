@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { userServices } from "./user.service";
 import userValidationSchema from "./user.validation";
 import { User } from "./user.model";
+import { Torder } from "./user.interface";
 
 const createUser = async (req: Request, res: Response) => {
   try {
-    const { user } = req.body;
+    const user = req.body;
     const zodParsedUserData = userValidationSchema.parse(user);
 
     const newUser = await userServices.createUserInDB(zodParsedUserData);
@@ -129,10 +130,104 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+const addOrder = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const existingUser = await User.isUserExists(parseInt(userId));
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: {
+          code: 404,
+          description: "User not found!",
+        },
+      });
+    }
+
+    const order: Torder = req.body;
+    await userServices.addOrderToUserInDB(parseInt(userId), order);
+    return res.status(200).json({
+      success: true,
+      message: "Order created successfully!",
+      data: null,
+    });
+  } catch (error) {
+    console.log((error as { message: string }).message);
+    return res
+      .status(500)
+      .json({ success: false, message: "Something went wrong" });
+  }
+};
+
+const getAllOrdersOfUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const existingUser = await User.isUserExists(parseInt(userId));
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: {
+          code: 404,
+          description: "User not found!",
+        },
+      });
+    }
+    const orders = await userServices.getAllOrdersOfUserFromDB(
+      parseInt(userId)
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Order created successfully!",
+      data: orders,
+    });
+  } catch (error) {
+    console.log((error as { message: string }).message);
+    // console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Something went wrong" });
+  }
+};
+
+const getTotalPrice= async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const existingUser = await User.isUserExists(parseInt(userId));
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        error: {
+          code: 404,
+          description: "User not found!",
+        },
+      });
+    }
+
+    const result = await userServices.getTotalPriceOfAllOrderOfUser(parseInt(userId));
+    return res.status(200).json({
+      success: true,
+      message: "Total price calculated successfully!",
+      data: {totalPrice:result.totalPrice},
+    });
+  } catch (error) {
+    console.log((error as { message: string }).message);
+    // console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Something went wrong" });
+  }
+};
+
 export const userControllers = {
   createUser,
   getAllusers,
   getSingleUser,
   deleteUser,
-  updateUser
+  updateUser,
+  addOrder,
+  getAllOrdersOfUser,
+  getTotalPrice
 };

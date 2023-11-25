@@ -64,7 +64,27 @@ const updateUserInDB = async (userId: number, updateData: Tuser) => {
 
 const addOrderToUserInDB = async (userId:number,order:Torder) => {
   const user = await User.findOne({userId});
-  user?.orders.
+  user?.orders.push(order);
+  await user?.save();
+}
+
+
+const getAllOrdersOfUserFromDB = async (userId:number) => {
+  const user = await User.findOne({userId},{orders:1,_id:0});
+  return user;
+}
+
+const getTotalPriceOfAllOrderOfUser = async(userId:number) =>{
+  const result = await User.aggregate([
+    {$match:{userId}},
+    {$unwind:'$orders'},
+    {$group:{
+      _id:'$_id',
+      totalPrice:{$sum:'$orders.price'}
+    }},
+    {$project:{_id:0,totalPrice:1}}
+  ]);
+  return result[0] || {totalPrice:0};
 }
 
 export const userServices = {
@@ -73,4 +93,7 @@ export const userServices = {
   getSingleUserFromDB,
   deleteUserFromDB,
   updateUserInDB,
+  addOrderToUserInDB,
+  getAllOrdersOfUserFromDB,
+  getTotalPriceOfAllOrderOfUser
 };
