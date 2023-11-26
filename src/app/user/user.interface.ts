@@ -27,10 +27,10 @@ export type Tuser = {
   isActive: boolean;
   hobbies: string[];
   address: Tadress;
-  orders: Torder[];
+  orders?: Torder[];
 };
 
 export interface UserModel extends Model<Tuser> {
   // eslint-disable-next-line no-unused-vars
-  isUserExists(userId:number): Promise<Tuser | null>;
+  isUserExists({userId,username}:{userId?:number,username?:string}): Promise<Tuser | null>;
 }

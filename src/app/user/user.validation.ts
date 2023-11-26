@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// zod schema for full name
 const fullNameValidationSchema = z.object({
   firstName: z
     .string({
@@ -17,6 +18,7 @@ const fullNameValidationSchema = z.object({
     .max(20),
 });
 
+// zod schema for address
 const addressValidationSchema = z.object({
   street: z
     .string({
@@ -41,6 +43,7 @@ const addressValidationSchema = z.object({
     .max(20),
 });
 
+// zod schema for order
 const orderValidationSchema = z.object({
   productName: z
     .string({
@@ -63,6 +66,7 @@ const orderValidationSchema = z.object({
     .min(1),
 });
 
+// zod schema for user
 export const userValidationSchema = z.object({
   userId: z.number({
     required_error: "userId is required",
@@ -97,7 +101,7 @@ export const userValidationSchema = z.object({
   isActive: z.boolean(),
   hobbies: z.array(z.string()),
   address: addressValidationSchema,
-  orders: z.array(orderValidationSchema).min(0),
+  orders: z.array(orderValidationSchema).min(0).optional(),
 });
 
 export default userValidationSchema;

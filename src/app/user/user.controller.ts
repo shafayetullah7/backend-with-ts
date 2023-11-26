@@ -6,8 +6,23 @@ import { Torder } from "./user.interface";
 
 const createUser = async (req: Request, res: Response) => {
   try {
-    const user = req.body;
-    const zodParsedUserData = userValidationSchema.parse(user);
+    const userData = req.body;
+
+    // validate body data with zod
+    const zodParsedUserData = userValidationSchema.parse(userData);
+
+    // check if user exists
+    const existingUser = await User.isUserExists({
+      userId: parseInt(userData.userId),
+      username: userData.username,
+    });
+
+    // new user should not be created with existing username of userId
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists" });
+    }
 
     const newUser = await userServices.createUserInDB(zodParsedUserData);
 
@@ -20,7 +35,7 @@ const createUser = async (req: Request, res: Response) => {
     console.log((error as { message: string }).message);
     return res
       .status(500)
-      .json({ success: false, message: "Something went wrong", error });
+      .json({ success: false, message: "Something went wrong" });
   }
 };
 
@@ -70,7 +85,7 @@ const getSingleUser = async (req: Request, res: Response) => {
 const deleteUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const existingUser = await User.isUserExists(parseInt(userId));
+    const existingUser = await User.isUserExists({ userId: parseInt(userId) });
 
     if (!existingUser) {
       return res.status(404).json({
@@ -100,7 +115,9 @@ const deleteUser = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const existingUser = await User.isUserExists(parseInt(userId));
+
+    // check if user exists
+    const existingUser = await User.isUserExists({ userId: parseInt(userId) });
     if (!existingUser) {
       return res.status(404).json({
         success: false,
@@ -133,7 +150,9 @@ const updateUser = async (req: Request, res: Response) => {
 const addOrder = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const existingUser = await User.isUserExists(parseInt(userId));
+
+    // check if user exists
+    const existingUser = await User.isUserExists({ userId: parseInt(userId) });
     if (!existingUser) {
       return res.status(404).json({
         success: false,
@@ -163,7 +182,9 @@ const addOrder = async (req: Request, res: Response) => {
 const getAllOrdersOfUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const existingUser = await User.isUserExists(parseInt(userId));
+
+    // check if user exists
+    const existingUser = await User.isUserExists({ userId: parseInt(userId) });
     if (!existingUser) {
       return res.status(404).json({
         success: false,
@@ -191,10 +212,12 @@ const getAllOrdersOfUser = async (req: Request, res: Response) => {
   }
 };
 
-const getTotalPrice= async (req: Request, res: Response) => {
+const getTotalPrice = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const existingUser = await User.isUserExists(parseInt(userId));
+
+    // check if user exists
+    const existingUser = await User.isUserExists({ userId: parseInt(userId) });
     if (!existingUser) {
       return res.status(404).json({
         success: false,
@@ -206,15 +229,16 @@ const getTotalPrice= async (req: Request, res: Response) => {
       });
     }
 
-    const result = await userServices.getTotalPriceOfAllOrderOfUser(parseInt(userId));
+    const result = await userServices.getTotalPriceOfAllOrderOfUser(
+      parseInt(userId)
+    );
     return res.status(200).json({
       success: true,
       message: "Total price calculated successfully!",
-      data: {totalPrice:result.totalPrice},
+      data: { totalPrice: result.totalPrice },
     });
   } catch (error) {
     console.log((error as { message: string }).message);
-    // console.log(error);
     return res
       .status(500)
       .json({ success: false, message: "Something went wrong" });
@@ -229,5 +253,5 @@ export const userControllers = {
   updateUser,
   addOrder,
   getAllOrdersOfUser,
-  getTotalPrice
+  getTotalPrice,
 };

@@ -1,20 +1,20 @@
 import mongoose from "mongoose";
 import { Tadress, TfullName, Torder, Tuser, UserModel } from "./user.interface";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 import config from "../config";
 
 const fullNameSchema = new mongoose.Schema<TfullName, UserModel>({
   firstName: {
     type: String,
     required: [true, "FirstName is required"],
-    minlength:[1,'Firstname must contain at least one character'],
-    maxlength:[20,'Firstname cannot be more than 20 characters']
+    minlength: [1, "Firstname must contain at least one character"],
+    maxlength: [20, "Firstname cannot be more than 20 characters"],
   },
   lastName: {
     type: String,
     required: [true, "LastName is required"],
-    minlength:[1,'Lastname must contain at least one character'],
-    maxlength:[20,'Lastname cannot be more than 20 characters']
+    minlength: [1, "Lastname must contain at least one character"],
+    maxlength: [20, "Lastname cannot be more than 20 characters"],
   },
 });
 
@@ -22,20 +22,20 @@ const addressSchema = new mongoose.Schema<Tadress>({
   street: {
     type: String,
     required: [true, "Address street is required"],
-    minlength:[1,'Address street must contain at least one character'],
-    maxlength:[20,'Address street cannot be more than 20 characters']
+    minlength: [1, "Address street must contain at least one character"],
+    maxlength: [20, "Address street cannot be more than 20 characters"],
   },
   city: {
     type: String,
     required: [true, "Address city is required"],
-    minlength:[1,'Address city must contain at least one character'],
-    maxlength:[20,'Address city cannot be more than 20 characters']
+    minlength: [1, "Address city must contain at least one character"],
+    maxlength: [20, "Address city cannot be more than 20 characters"],
   },
   country: {
     type: String,
     required: [true, "Address country is required"],
-    minlength:[1,'Address country must contain at least one character'],
-    maxlength:[20,'Address country cannot be more than 20 characters']
+    minlength: [1, "Address country must contain at least one character"],
+    maxlength: [20, "Address country cannot be more than 20 characters"],
   },
 });
 
@@ -43,18 +43,18 @@ const orderSchema = new mongoose.Schema<Torder>({
   productName: {
     type: String,
     required: [true, "Product name is required"],
-    minlength:[1,'Product must contain at least one character'],
-    maxlength:[20,'Product cannot be more than 20 characters']
+    minlength: [1, "Product must contain at least one character"],
+    maxlength: [20, "Product cannot be more than 20 characters"],
   },
   price: {
     type: Number,
     required: [true, "Product price is required"],
-    min:[0,'Price cannot be less than 0'],
+    min: [0, "Price cannot be less than 0"],
   },
   quantity: {
     type: Number,
     required: [true, "Product quantity is required"],
-    min:[1,'Price cannot be less than 1'],
+    min: [1, "Price cannot be less than 1"],
   },
 });
 
@@ -68,13 +68,13 @@ const userSchema = new mongoose.Schema<Tuser>({
     type: String,
     required: [true, "Username is required"],
     unique: true,
-    minlength:[1,'Username must contain at least one character'],
-    maxlength:[20,'Username cannot be more than 20 characters']
+    minlength: [1, "Username must contain at least one character"],
+    maxlength: [20, "Username cannot be more than 20 characters"],
   },
   password: {
     type: String,
     required: [true, "Password is required"],
-    minlength:[6,'Username must contain at least 6 character'],
+    minlength: [6, "Username must contain at least 6 character"],
   },
   fullName: {
     type: fullNameSchema,
@@ -83,7 +83,7 @@ const userSchema = new mongoose.Schema<Tuser>({
   age: {
     type: Number,
     required: [true, "Age is required"],
-    min:[18,'Price cannot be less than 18'],
+    min: [18, "Price cannot be less than 18"],
   },
   email: {
     type: String,
@@ -105,19 +105,24 @@ const userSchema = new mongoose.Schema<Tuser>({
   },
 });
 
-
-userSchema.statics.isUserExists = async function name(userId:number) {
-  const existingUser = await User.findOne({userId},{password:0,__v:0});
+userSchema.statics.isUserExists = async function ({ userId, username }) {
+  let existingUser: Tuser | null = null;
+  if (userId) {
+    existingUser = await User.findOne({ userId }, { password: 0, __v: 0 });
+  }
+  if (existingUser) return existingUser;
+  if (username) {
+    existingUser = await User.findOne({ username }, { password: 0, __v: 0 });
+  }
   return existingUser;
-}
+};
 
-userSchema.pre('save',async function(next){
-  this.password = await bcrypt.hash(this.password,Number(config.bcrypt_salt_rounds));
+userSchema.pre("save", async function (next) {
+  this.password = await bcrypt.hash(
+    this.password,
+    Number(config.bcrypt_salt_rounds)
+  );
   next();
 });
 
-
-
-
-
-export const User = mongoose.model<Tuser,UserModel>("User", userSchema);
+export const User = mongoose.model<Tuser, UserModel>("User", userSchema);

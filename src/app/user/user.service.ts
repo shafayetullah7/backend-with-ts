@@ -9,6 +9,8 @@ const createUserInDB = async (user: Tuser) => {
   if (!newUser) {
     return newUser;
   }
+
+  // remove password from response object
   // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
   const { password, ...data } = newUser.toObject();
   return data;
@@ -33,7 +35,7 @@ const getAllUsersFromDB = async () => {
 };
 
 const getSingleUserFromDB = async (userId: number) => {
-  const existingUser = await User.isUserExists(userId);
+  const existingUser = await User.isUserExists({ userId });
   return existingUser;
 };
 
@@ -54,6 +56,7 @@ const updateUserInDB = async (userId: number, updateData: Tuser) => {
     new: true,
   });
   if (updatedUser) {
+    // remove password from response object
     // eslint-disable-next-line no-unused-vars
     const { password, ...data } = updatedUser.toObject();
     return data;
@@ -61,31 +64,40 @@ const updateUserInDB = async (userId: number, updateData: Tuser) => {
   return updatedUser;
 };
 
+// ********************************************
+// ***********User orders management***********
+// ********************************************
 
-const addOrderToUserInDB = async (userId:number,order:Torder) => {
-  const user = await User.findOne({userId});
-  user?.orders.push(order);
-  await user?.save();
-}
+const addOrderToUserInDB = async (userId: number, order: Torder) => {
+  const user = await User.findOne({ userId });
+  if (user) {
+    if (!user.orders) {
+      user.orders = [];
+    }
+    user.orders.push(order);
+    await user.save();
+  }
+};
 
-
-const getAllOrdersOfUserFromDB = async (userId:number) => {
-  const user = await User.findOne({userId},{orders:1,_id:0});
+const getAllOrdersOfUserFromDB = async (userId: number) => {
+  const user = await User.findOne({ userId }, { orders: 1, _id: 0 });
   return user;
-}
+};
 
-const getTotalPriceOfAllOrderOfUser = async(userId:number) =>{
+const getTotalPriceOfAllOrderOfUser = async (userId: number) => {
   const result = await User.aggregate([
-    {$match:{userId}},
-    {$unwind:'$orders'},
-    {$group:{
-      _id:'$_id',
-      totalPrice:{$sum:'$orders.price'}
-    }},
-    {$project:{_id:0,totalPrice:1}}
+    { $match: { userId } },
+    { $unwind: "$orders" },
+    {
+      $group: {
+        _id: "$_id",
+        totalPrice: { $sum: "$orders.price" },
+      },
+    },
+    { $project: { _id: 0, totalPrice: 1 } },
   ]);
-  return result[0] || {totalPrice:0};
-}
+  return result[0] || { totalPrice: 0 };
+};
 
 export const userServices = {
   createUserInDB,
@@ -95,5 +107,5 @@ export const userServices = {
   updateUserInDB,
   addOrderToUserInDB,
   getAllOrdersOfUserFromDB,
-  getTotalPriceOfAllOrderOfUser
+  getTotalPriceOfAllOrderOfUser,
 };
