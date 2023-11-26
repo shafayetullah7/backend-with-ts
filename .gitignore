@@ -19,3 +19,4 @@ yarn.lock
 
 # macOS
 .DS_Store
+.vercel

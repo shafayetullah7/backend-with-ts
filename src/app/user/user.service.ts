@@ -91,7 +91,9 @@ const getTotalPriceOfAllOrderOfUser = async (userId: number) => {
     {
       $group: {
         _id: "$_id",
-        totalPrice: { $sum: "$orders.price" },
+        totalPrice: {
+          $sum: { $multiply: ["$orders.price", "$orders.quantity"] },
+        },
       },
     },
     { $project: { _id: 0, totalPrice: 1 } },
